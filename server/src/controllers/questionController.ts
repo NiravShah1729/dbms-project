@@ -1,0 +1,81 @@
+import { Request, Response } from 'express';
+import { executePool } from '../config/db';
+import { AuthenticatedRequest } from '../middleware/auth';
+
+export const getQuestions = async (req: Request, res: Response) => {
+  const { rating, tag, page = 1, limit = 20 } = req.query;
+  const offset = (Number(page) - 1) * Number(limit);
+
+  try {
+    let sql = `SELECT q.*, s.RefSolID FROM Question q LEFT JOIN ReferenceSolution s ON q.QuestionID = s.QuestionID WHERE 1=1 `;
+    const binds: any = {};
+
+    if (rating) {
+      sql += `AND q.Rating = :rating `;
+      binds.rating = Number(rating);
+    }
+    if (tag) {
+      sql += `AND q.Tags LIKE :tag `;
+      binds.tag = `%${tag}%`;
+    }
+
+    sql += `ORDER BY q.Rating ASC, q.CreatedAt DESC OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`;
+    binds.offset = offset;
+    binds.limit = Number(limit);
+
+    const result = await executePool<any>(sql, binds);
+    res.json(result.rows);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Internal Server Error', details: err.message });
+  }
+};
+
+export const getQuestionById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const qSql = `SELECT * FROM Question WHERE QuestionID = :id`;
+    const sSql = `SELECT * FROM ReferenceSolution WHERE QuestionID = :id`;
+    
+    const question = (await executePool<any>(qSql, { id })).rows?.[0];
+    const solutions = (await executePool<any>(sSql, { id })).rows;
+
+    if (!question) return res.status(404).json({ error: 'Question not found' });
+    
+    res.json({ ...question, solutions });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Internal Server Error', details: err.message });
+  }
+};
+
+export const createQuestion = async (req: AuthenticatedRequest, res: Response) => {
+  const { CF_Link, Title, Rating, Tags, Hint, Solution } = req.body;
+  const AdminID = req.user?.UserID;
+
+  try {
+    const qSql = `
+      INSERT INTO Question (AdminID, CF_Link, Title, Rating, Tags, Hint)
+      VALUES (:AdminID, :CF_Link, :Title, :Rating, :Tags, :Hint)
+    `;
+    await executePool(qSql, { AdminID, CF_Link, Title, Rating, Tags, Hint });
+
+    if (Solution) {
+      const getNewIdSql = `SELECT QuestionID FROM Question WHERE CF_Link = :CF_Link`;
+      const qId = (await executePool<any>(getNewIdSql, { CF_Link })).rows?.[0].QUESTIONID;
+      
+      const sSql = `
+        INSERT INTO ReferenceSolution (QuestionID, Description, CodeSnippet, Language)
+        VALUES (:QuestionID, :Description, :CodeSnippet, :Language)
+      `;
+      await executePool(sSql, { 
+        QuestionID: qId, 
+        Description: 'Reference Solution', 
+        CodeSnippet: Solution, 
+        Language: 'cpp' 
+      });
+    }
+
+    res.status(201).json({ message: 'Question created successfully' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Internal Server Error', details: err.message });
+  }
+};
