@@ -2,17 +2,31 @@ import { Request, Response } from 'express';
 import { executePool } from '../config/db';
 import { AuthenticatedRequest } from '../middleware/auth';
 
-export const getQuestions = async (req: Request, res: Response) => {
+export const getQuestions = async (req: AuthenticatedRequest, res: Response) => {
   const { rating, tag, page = 1, limit = 20 } = req.query;
   const offset = (Number(page) - 1) * Number(limit);
+  const UserID = req.user?.UserID;
 
   try {
     let sql = `
-      SELECT q.QuestionID, q.Title, q.CF_Link, q.Rating, q.Tags, q.IsVerified, s.RefSolID 
+      SELECT 
+        q.QuestionID, 
+        q.Title, 
+        q.CF_Link, 
+        q.Rating, 
+        q.Tags, 
+        q.IsVerified, 
+        s.RefSolID,
+        (SELECT v.Name 
+         FROM Submission sub 
+         JOIN VerdictLookup v ON sub.VerdictID = v.VerdictID 
+         WHERE sub.QuestionID = q.QuestionID AND sub.UserID = :UserID
+         ORDER BY sub.SubmittedAt DESC 
+         FETCH NEXT 1 ROWS ONLY) as SolvedStatus
       FROM Question q 
       LEFT JOIN ReferenceSolution s ON q.QuestionID = s.QuestionID 
       WHERE 1=1 `;
-    const binds: any = {};
+    const binds: any = { UserID };
 
     if (rating) {
       sql += `AND q.Rating = :rating `;

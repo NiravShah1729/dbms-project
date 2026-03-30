@@ -11,6 +11,7 @@ interface Question {
   TAGS: string;
   ISVERIFIED: number;
   REFSOLID: number | null;
+  SOLVEDSTATUS: 'AC' | 'WA' | 'TLE' | 'MLE' | 'CE' | null;
 }
 
 interface QuestionState {

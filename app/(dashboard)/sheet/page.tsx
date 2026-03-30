@@ -40,7 +40,7 @@ export default function SheetPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="flex flex-col gap-4">
         {loading ? (
           <div className="col-span-full flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -54,7 +54,8 @@ export default function SheetPage() {
               Rating: q.RATING,
               Tags: q.TAGS,
               IsVerified: q.ISVERIFIED === 1,
-              HasSolution: q.REFSOLID !== null
+              HasSolution: q.REFSOLID !== null,
+              SolvedStatus: q.SOLVEDSTATUS
             }} />
           ))
         )}

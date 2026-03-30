@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/app/store/useAuthStore';
-import { LayoutDashboard, ListTodo, Trophy, User, LogOut, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, ListTodo, Trophy, User, LogOut, ShieldAlert, Send } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -12,6 +12,7 @@ export default function Navbar() {
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
     { label: 'The Sheet', icon: ListTodo, href: '/sheet' },
+    { label: 'Submissions', icon: Send, href: '/submissions' },
     { label: 'Leaderboard', icon: Trophy, href: '/leaderboard' },
     { label: 'Profile', icon: User, href: '/profile' },
   ];
