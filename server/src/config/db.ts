@@ -12,6 +12,9 @@ const dbConfig = {
   connectString: process.env.ORACLE_CONNECTION_STRING,
 };
 
+// Return CLOBs as strings to prevent JSON serialization errors
+oracledb.fetchAsString = [oracledb.CLOB];
+
 console.log(`[db]: Attempting connection for user: ${dbConfig.user} to ${dbConfig.connectString}`);
 
 export async function getConnection() {

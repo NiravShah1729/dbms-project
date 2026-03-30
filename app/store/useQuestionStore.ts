@@ -30,6 +30,7 @@ export const useQuestionStore = create<QuestionState>((set) => ({
     set({ loading: true });
     try {
       const response = await api.get('/questions', { params });
+      console.log(response.data);
       set({ questions: response.data as Question[] });
     } catch (err) {
       console.error('Fetch questions error:', err);

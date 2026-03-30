@@ -7,7 +7,11 @@ export const getQuestions = async (req: Request, res: Response) => {
   const offset = (Number(page) - 1) * Number(limit);
 
   try {
-    let sql = `SELECT q.*, s.RefSolID FROM Question q LEFT JOIN ReferenceSolution s ON q.QuestionID = s.QuestionID WHERE 1=1 `;
+    let sql = `
+      SELECT q.QuestionID, q.Title, q.CF_Link, q.Rating, q.Tags, q.IsVerified, s.RefSolID 
+      FROM Question q 
+      LEFT JOIN ReferenceSolution s ON q.QuestionID = s.QuestionID 
+      WHERE 1=1 `;
     const binds: any = {};
 
     if (rating) {
@@ -23,9 +27,14 @@ export const getQuestions = async (req: Request, res: Response) => {
     binds.offset = offset;
     binds.limit = Number(limit);
 
+    console.log('[questions]: Executing SQL:', sql);
+    console.log('[questions]: Binds:', JSON.stringify(binds));
+
     const result = await executePool<any>(sql, binds);
+    console.log(`[questions]: Fetched ${result.rows?.length || 0} questions`);
     res.json(result.rows);
   } catch (err: any) {
+    console.error('[questions]: Fetch error:', err.message);
     res.status(500).json({ error: 'Internal Server Error', details: err.message });
   }
 };
