@@ -1,16 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  CheckCircle2, 
-  Bookmark, 
-  Lightbulb, 
-  Code2, 
-  StickyNote, 
-  Send, 
-  Loader2, 
+import {
+  CheckCircle2,
+  Bookmark,
+  Lightbulb,
+  Code2,
+  StickyNote,
+  Send,
+  Loader2,
   AlertCircle,
-  MessageCircle 
+  MessageCircle
 } from 'lucide-react';
 import api from '@/lib/api';
 import DiscussionModal from './shared/DiscussionModal';
@@ -34,8 +34,8 @@ export default function QuestionCard({ question }: QuestionProps) {
   const [verdict, setVerdict] = useState<'AC' | 'WA' | 'TLE' | 'MLE' | 'CE' | null>(question.SolvedStatus || null);
   const [error, setError] = useState<string | null>(null);
   const [isDiscussionOpen, setIsDiscussionOpen] = useState(false);
-
   const [isNotesOpen, setIsNotesOpen] = useState(false);
+
   const tags = question.Tags?.split(',') || [];
 
   const handleCheckSubmission = async () => {
@@ -74,7 +74,7 @@ export default function QuestionCard({ question }: QuestionProps) {
             {question.IsVerified && <CheckCircle2 className="h-5 w-5 text-blue-500" />}
             {verdict === 'AC' && <CheckCircle2 className="h-5 w-5 text-green-500" />}
           </div>
-          
+
           <div className="flex flex-wrap gap-2 items-center">
             <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">
               {question.Rating}
@@ -87,64 +87,65 @@ export default function QuestionCard({ question }: QuestionProps) {
           </div>
 
           <div className="flex gap-4 pt-1">
-              <button 
-                onClick={() => setIsDiscussionOpen(true)}
-                className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors"
-              >
-                  <MessageCircle className="h-4 w-4" />
-                  Discussion
-              </button>
-              <button className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
-                  <Lightbulb className="h-4 w-4" />
-                  Hint
-              </button>
-              <button className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
-                  <Code2 className="h-4 w-4" />
-                  Solution
-              </button>
-              <button className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
-                  <StickyNote className="h-4 w-4" />
-              <button 
-                onClick={() => setIsNotesOpen(true)}
-                className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
-              >
-                  <StickyNote className="h-3 w-3" />
-                  Note
-              </button>
+            <button
+              onClick={() => setIsDiscussionOpen(true)}
+              className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Discussion
+            </button>
+
+            <button className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
+              <Lightbulb className="h-4 w-4" />
+              Hint
+            </button>
+
+            <button className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
+              <Code2 className="h-4 w-4" />
+              Solution
+            </button>
+
+            <button
+              onClick={() => setIsNotesOpen(true)}
+              className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors"
+            >
+              <StickyNote className="h-4 w-4" />
+              Note
+            </button>
           </div>
         </div>
 
         <div className="flex flex-col gap-3 sm:items-end">
           <div className="flex items-center gap-2">
-             {error && (
-               <div className="flex items-center gap-1 text-[10px] text-destructive font-medium" title={error}>
-                 <AlertCircle className="h-3 w-3" />
-                 Error
-               </div>
-             )}
-             <button 
-               onClick={handleCheckSubmission}
-               disabled={loading}
-               className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-green-700 disabled:opacity-50"
-             >
-               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-               {verdict ? 'Re-check' : 'Check Submission'}
-             </button>
-             
-             <a 
-               href={question.CF_Link} 
-               target="_blank" 
-               rel="noopener noreferrer"
-               className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-bold transition-all hover:bg-secondary/80"
-             >
-               Solve on CF
-             </a>
-             
-             <button className="rounded-lg border bg-background p-2 text-muted-foreground hover:text-primary transition-colors">
-               <Bookmark className="h-5 w-5" />
-             </button>
+            {error && (
+              <div className="flex items-center gap-1 text-[10px] text-destructive font-medium" title={error}>
+                <AlertCircle className="h-3 w-3" />
+                Error
+              </div>
+            )}
+            <button
+              onClick={handleCheckSubmission}
+              disabled={loading}
+              className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-green-700 disabled:opacity-50"
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {verdict ? 'Re-check' : 'Check Submission'}
+            </button>
+
+            <a
+              href={question.CF_Link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-bold transition-all hover:bg-secondary/80"
+            >
+              Solve on CF
+            </a>
+
+            <button className="rounded-lg border bg-background p-2 text-muted-foreground hover:text-primary transition-colors">
+              <Bookmark className="h-5 w-5" />
+            </button>
           </div>
-          
+
           {verdict && (
             <div className={`text-xs font-bold uppercase ${verdict === 'AC' ? 'text-green-500' : 'text-red-500'}`}>
               Verdict: {verdict}
@@ -153,15 +154,15 @@ export default function QuestionCard({ question }: QuestionProps) {
         </div>
       </div>
 
-      <DiscussionModal 
-        questionId={question.QuestionID} 
-        questionTitle={question.Title || 'Untitled'} 
+      <DiscussionModal
+        questionId={question.QuestionID}
+        questionTitle={question.Title || 'Untitled'}
         isOpen={isDiscussionOpen}
         onClose={() => setIsDiscussionOpen(false)}
       />
-      <NotesModal 
-        questionId={question.QuestionID} 
-        questionTitle={question.Title || 'Untitled'} 
+      <NotesModal
+        questionId={question.QuestionID}
+        questionTitle={question.Title || 'Untitled'}
         isOpen={isNotesOpen}
         onClose={() => setIsNotesOpen(false)}
       />
