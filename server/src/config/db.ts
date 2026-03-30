@@ -1,10 +1,15 @@
 import oracledb from 'oracledb';
 import dotenv from 'dotenv';
+import path from 'path';
 
-dotenv.config();
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 // Oracle Instant Client setup (if needed on local Windows)
 // oracledb.initOracleClient({ libDir: 'C:\\oracle\\instantclient_21_12' });
+
+if (!process.env.ORACLE_USER || !process.env.ORACLE_PASSWORD || !process.env.ORACLE_CONNECTION_STRING) {
+  console.error('[db] Missing required Oracle environment variables. Check your .env file.');
+}
 
 const dbConfig = {
   user: process.env.ORACLE_USER,
