@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Loader2, Lock, Mail, User, Code, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { useAuthStore } from '@/app/store/useAuthStore';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -17,6 +18,13 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, router]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();

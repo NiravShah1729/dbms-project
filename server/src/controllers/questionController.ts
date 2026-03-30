@@ -102,3 +102,44 @@ export const createQuestion = async (req: AuthenticatedRequest, res: Response) =
     res.status(500).json({ error: 'Internal Server Error', details: err.message });
   }
 };
+
+export const deleteQuestion = async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+  try {
+    const qSql = `DELETE FROM Question WHERE QuestionID = :id`;
+    await executePool(qSql, { id });
+    res.json({ message: 'Question deleted successfully' });
+  } catch (err: any) {
+    // This catch block will receive the ORA-20001 error from our trigger
+    res.status(500).json({ error: 'Deletion failed.', details: err.message });
+  }
+};
+
+export const updateQuestion = async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+  const { CF_Link, Title, Rating, Tags, Hint, Solution } = req.body;
+  try {
+    const qSql = `
+      UPDATE Question 
+      SET CF_Link = :CF_Link, Title = :Title, Rating = :Rating, Tags = :Tags, Hint = :Hint
+      WHERE QuestionID = :id
+    `;
+    await executePool(qSql, { id, CF_Link, Title, Rating, Tags, Hint });
+
+    if (Solution) {
+      // Upsert reference solution
+      const checkSolSql = `SELECT * FROM ReferenceSolution WHERE QuestionID = :id`;
+      const existing = await executePool<any>(checkSolSql, { id });
+
+      if (existing.rows?.length) {
+        await executePool(`UPDATE ReferenceSolution SET CodeSnippet = :Solution WHERE QuestionID = :id`, { id, Solution });
+      } else {
+        await executePool(`INSERT INTO ReferenceSolution (QuestionID, Description, CodeSnippet, Language) VALUES (:id, 'Reference Solution', :Solution, 'cpp')`, { id, Solution });
+      }
+    }
+
+    res.json({ message: 'Question updated successfully' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Update failed.', details: err.message });
+  }
+};

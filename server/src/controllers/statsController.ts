@@ -81,8 +81,29 @@ export const getUserAnalytics = async (req: AuthenticatedRequest, res: Response)
     `;
     const ratingProgress = await executePool<any>(ratingSql, { UserID });
 
-    res.json({ heatmap: heatmap.rows, ratingProgress: ratingProgress.rows });
+    // Solve ratio calculation via function (Direct PL/SQL Function Call)
+    const ratioResult = await executePool<{ RATIO: number }>(
+      `SELECT fn_get_solve_ratio(:UserID) as RATIO FROM DUAL`,
+      { UserID }
+    );
+    const solveRatio = ratioResult.rows?.[0]?.RATIO || 0;
+
+    res.json({ 
+      heatmap: heatmap.rows, 
+      ratingProgress: ratingProgress.rows, 
+      solveRatio 
+    });
   } catch (err: any) {
     res.status(500).json({ error: 'Internal Server Error', details: err.message });
+  }
+};
+
+export const syncUserStats = async (req: AuthenticatedRequest, res: Response) => {
+  const UserID = req.user?.UserID;
+  try {
+    await executePool(`BEGIN sp_sync_user_stats(:UserID); END;`, { UserID });
+    res.json({ message: 'Stats synced successfully!' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Manual sync failed.', details: err.message });
   }
 };

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/app/store/useAuthStore';
@@ -8,19 +9,23 @@ import { LayoutDashboard, ListTodo, Trophy, User, LogOut, ShieldAlert, Send } fr
 export default function Navbar() {
   const pathname = usePathname();
   const { user, logout: storeLogout } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
     { label: 'The Sheet', icon: ListTodo, href: '/sheet' },
     { label: 'Submissions', icon: Send, href: '/submissions' },
     { label: 'Leaderboard', icon: Trophy, href: '/leaderboard' },
-    { label: 'Profile', icon: User, href: '/profile' },
+    ...(Array.isArray(user?.Roles) && user?.Roles?.some(role => role.toLowerCase() === 'admin') 
+      ? [{ label: 'Admin Panel', icon: ShieldAlert, href: '/admin' }] 
+      : [])
   ];
-
-  // Add Admin item if user has admin role
-  if (user?.Roles.includes('admin')) {
-    navItems.push({ label: 'Admin Panel', icon: ShieldAlert, href: '/admin' });
-  }
 
   return (
     <nav className="fixed left-0 top-0 h-full w-64 border-r bg-background p-6">

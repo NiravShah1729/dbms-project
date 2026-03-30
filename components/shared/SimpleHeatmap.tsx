@@ -14,40 +14,53 @@ export default function SimpleHeatmap({ data }: HeatmapProps) {
   });
 
   const getIntensity = (count: number) => {
-    if (count === 0) return 'bg-muted/50';
-    if (count <= 2) return 'bg-green-900/40';
-    if (count <= 5) return 'bg-green-700/60';
-    if (count <= 10) return 'bg-green-500/80';
-    return 'bg-green-400';
+    if (count === 0) return 'bg-slate-200'; // Accurate grey-300 feel
+    if (count <= 2) return 'bg-emerald-200';
+    if (count <= 5) return 'bg-emerald-400';
+    if (count <= 10) return 'bg-emerald-600';
+    return 'bg-emerald-800';
   };
 
   return (
-    <div className="rounded-xl border bg-card p-6">
-      <h3 className="mb-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Practice Heatmap (Last 30 Days)</h3>
-      <div className="flex flex-wrap gap-2">
+    <div className="rounded-[2rem] border bg-card/50 backdrop-blur-xl p-8 shadow-xl relative overflow-hidden group">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-sm font-black text-muted-foreground uppercase tracking-[0.2em]">Practice Intensity</h3>
+        <div className="text-[10px] font-black text-indigo-600 bg-indigo-600/10 px-2.5 py-1 rounded-full uppercase tracking-tighter">
+          Last 30 Days
+        </div>
+      </div>
+      
+      <div className="flex flex-wrap gap-2.5">
         {days.map((day) => {
           const entry = data.find((d) => d.submission_date.startsWith(day));
-          const count = entry ? entry.count : 0;
+          const count = entry ? (typeof entry.count === 'string' ? parseInt(entry.count) : entry.count) : 0;
           return (
             <div
               key={day}
-              title={`${day}: ${count} submissions`}
-              className={`h-4 w-4 rounded-sm transition-transform hover:scale-125 cursor-help ${getIntensity(count)}`}
+              className={`h-4.5 w-4.5 rounded-sm transition-all hover:scale-125 cursor-help ${getIntensity(count)} shadow-sm hover:ring-2 hover:ring-indigo-500/20`}
+              title={`${new Date(day).toLocaleDateString()}: ${count} submissions`}
             />
           );
         })}
       </div>
-      <div className="mt-4 flex items-center justify-between text-[10px] text-muted-foreground uppercase">
-        <span>Less</span>
-        <div className="flex gap-1">
-          <div className="h-3 w-3 rounded-sm bg-muted/50" />
-          <div className="h-3 w-3 rounded-sm bg-green-900/40" />
-          <div className="h-3 w-3 rounded-sm bg-green-700/60" />
-          <div className="h-3 w-3 rounded-sm bg-green-500/80" />
-          <div className="h-3 w-3 rounded-sm bg-green-400" />
+
+      <div className="mt-8 flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground/60">
+          <span>Less</span>
+          <div className="flex gap-1 mx-1">
+            <div className="h-2.5 w-2.5 rounded-sm bg-slate-200" />
+            <div className="h-2.5 w-2.5 rounded-sm bg-emerald-200" />
+            <div className="h-2.5 w-2.5 rounded-sm bg-emerald-400" />
+            <div className="h-2.5 w-2.5 rounded-sm bg-emerald-600" />
+            <div className="h-2.5 w-2.5 rounded-sm bg-emerald-800" />
+          </div>
+          <span>More</span>
         </div>
-        <span>More</span>
+        <div className="text-[9px] font-bold text-muted-foreground italic">
+          Consistent practice builds mastery.
+        </div>
       </div>
     </div>
   );
 }
+
