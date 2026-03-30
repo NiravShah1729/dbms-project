@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { CheckCircle2, Bookmark, Lightbulb, Code2, StickyNote, MessageCircle } from 'lucide-react';
 import DiscussionModal from './shared/DiscussionModal';
+import NotesModal from './shared/NotesModal';
 
 export interface QuestionProps {
   question: {
@@ -18,6 +19,7 @@ export interface QuestionProps {
 
 export default function QuestionCard({ question }: QuestionProps) {
   const [isDiscussionOpen, setIsDiscussionOpen] = useState(false);
+  const [isNotesOpen, setIsNotesOpen] = useState(false);
   const tags = question.Tags?.split(',') || [];
 
   return (
@@ -59,7 +61,10 @@ export default function QuestionCard({ question }: QuestionProps) {
                   <Code2 className="h-3 w-3" />
                   Solution
               </button>
-              <button className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-primary transition-colors">
+              <button 
+                onClick={() => setIsNotesOpen(true)}
+                className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+              >
                   <StickyNote className="h-3 w-3" />
                   Note
               </button>
@@ -81,6 +86,12 @@ export default function QuestionCard({ question }: QuestionProps) {
         questionTitle={question.Title || 'Untitled'} 
         isOpen={isDiscussionOpen}
         onClose={() => setIsDiscussionOpen(false)}
+      />
+      <NotesModal 
+        questionId={question.QuestionID} 
+        questionTitle={question.Title || 'Untitled'} 
+        isOpen={isNotesOpen}
+        onClose={() => setIsNotesOpen(false)}
       />
     </>
   );
