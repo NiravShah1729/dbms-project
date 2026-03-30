@@ -34,6 +34,7 @@ export interface Question {
   Rating?: number;
   Tags?: string;
   Hint?: string;
+  IsVerified: boolean;
   CreatedAt: Date;
 }
 

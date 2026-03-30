@@ -6,7 +6,13 @@ const nextConfig: NextConfig = {
     reactCompiler: true,
   },
   images: {
-    domains: ['api.dicebear.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+      },
+    ],
+    dangerouslyAllowSVG: true,
   },
   outputFileTracingRoot: process.cwd(),
 };

@@ -54,6 +54,7 @@ CREATE TABLE Question (
     Rating     NUMBER(4) CHECK (Rating BETWEEN 800 AND 3500),
     Tags       VARCHAR2(1000),
     Hint       CLOB,
+    IsVerified NUMBER(1) DEFAULT 1 CHECK (IsVerified IN (0, 1)),
     CreatedAt  TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL,
     CONSTRAINT fk_question_admin FOREIGN KEY (AdminID) REFERENCES "User"(UserID)
 );
