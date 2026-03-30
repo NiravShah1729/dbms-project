@@ -89,7 +89,13 @@ export const verifySubmission = async (req: AuthenticatedRequest, res: Response)
     const cfRes = await fetch(cfUrl);
     const cfData: any = await cfRes.json();
 
-    if (cfData.status !== 'OK') return res.status(502).json({ error: 'Codeforces API error', details: cfData.comment });
+    if (cfData.status !== 'OK') {
+      const isNotFound = cfData.comment?.toLowerCase().includes('not found');
+      return res.status(isNotFound ? 404 : 502).json({ 
+        error: isNotFound ? 'Codeforces handle not found' : 'Codeforces API error', 
+        details: cfData.comment 
+      });
+    }
 
     // 4. Look for latest submission for THIS problem
     const submission = cfData.result.find((s: any) => 
@@ -99,7 +105,6 @@ export const verifySubmission = async (req: AuthenticatedRequest, res: Response)
     if (!submission) return res.status(404).json({ error: 'No submission found for this problem on Codeforces.' });
 
     // Map CF verdict to our database VerdictLookup
-    // CF verdicts: OK, WRONG_ANSWER, TIME_LIMIT_EXCEEDED, MEMORY_LIMIT_EXCEEDED, COMPILATION_ERROR, RUNTIME_ERROR, etc.
     const cfVerdict = submission.verdict;
     let verdictName = 'WA';
     if (cfVerdict === 'OK') verdictName = 'AC';
@@ -107,20 +112,31 @@ export const verifySubmission = async (req: AuthenticatedRequest, res: Response)
     else if (cfVerdict === 'MEMORY_LIMIT_EXCEEDED') verdictName = 'MLE';
     else if (cfVerdict === 'COMPILATION_ERROR') verdictName = 'CE';
 
-    // 5. Insert into Submission table
+    // 5. Insert into Submission table with CF_SubmissionID tracking
     const vResult = await executePool<any>(`SELECT VerdictID FROM VerdictLookup WHERE Name = :verdictName`, { verdictName });
     const VerdictID = (vResult.rows as any)[0]?.VERDICTID;
 
     const insertSql = `
-      INSERT INTO Submission (UserID, QuestionID, VerdictID, SubmittedCode)
-      VALUES (:UserID, :QuestionID, :VerdictID, :SubmittedCode)
+      INSERT INTO Submission (UserID, QuestionID, VerdictID, SubmittedCode, CF_SubmissionID)
+      VALUES (:UserID, :QuestionID, :VerdictID, :SubmittedCode, :CF_SubmissionID)
     `;
-    await executePool(insertSql, { 
-      UserID, 
-      QuestionID, 
-      VerdictID, 
-      SubmittedCode: `CF submission ID: ${submission.id}` 
-    });
+    
+    try {
+      await executePool(insertSql, { 
+        UserID, 
+        QuestionID, 
+        VerdictID, 
+        SubmittedCode: `CF submission ID: ${submission.id}`,
+        CF_SubmissionID: submission.id
+      });
+    } catch (dbErr: any) {
+      // If it's a unique constraint error (ORA-00001), it means it's already recorded
+      if (dbErr.message.includes('ORA-00001')) {
+        console.log('[verifySubmission]: Submission already recorded.');
+      } else {
+        throw dbErr;
+      }
+    }
 
     res.json({ 
       success: true, 
