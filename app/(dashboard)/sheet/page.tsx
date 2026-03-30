@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import QuestionCard from '@/components/QuestionCard';
 import { useQuestionStore } from '@/app/store/useQuestionStore';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Bookmark } from 'lucide-react';
 
 export default function SheetPage() {
   const { questions, loading, filters, setFilters, fetchQuestions } = useQuestionStore();
@@ -30,9 +30,22 @@ export default function SheetPage() {
             />
           </div>
 
+          <button 
+            onClick={() => setFilters({ ...filters, bookmarked: !filters.bookmarked })}
+            className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+              filters.bookmarked 
+                ? 'bg-primary text-primary-foreground border-primary' 
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+          >
+            <Bookmark className={`h-4 w-4 ${filters.bookmarked ? 'fill-current' : ''}`} />
+            Bookmarked
+          </button>
+
           <select 
             className="rounded-md border bg-muted px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
             onChange={(e) => setFilters({ ...filters, rating: e.target.value })}
+            value={filters.rating}
           >
             <option value="">All Ratings</option>
             {ratings.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -55,7 +68,8 @@ export default function SheetPage() {
               Tags: q.TAGS,
               IsVerified: q.ISVERIFIED === 1,
               HasSolution: q.REFSOLID !== null,
-              SolvedStatus: q.SOLVEDSTATUS
+              SolvedStatus: q.SOLVEDSTATUS,
+              IsBookmarked: q.ISBOOKMARKED === 1
             }} />
           ))
         )}
