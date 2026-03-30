@@ -1,0 +1,3 @@
+ALTER TABLE Discussion ADD ParentID NUMBER;
+ALTER TABLE Discussion ADD CONSTRAINT fk_disc_parent FOREIGN KEY (ParentID) REFERENCES Discussion(DiscussionID) ON DELETE CASCADE;
+EXIT;
