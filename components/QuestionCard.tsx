@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/api';
 import DiscussionModal from './shared/DiscussionModal';
+import NotesModal from './shared/NotesModal';
 
 export interface QuestionProps {
   question: {
@@ -34,6 +35,7 @@ export default function QuestionCard({ question }: QuestionProps) {
   const [error, setError] = useState<string | null>(null);
   const [isDiscussionOpen, setIsDiscussionOpen] = useState(false);
 
+  const [isNotesOpen, setIsNotesOpen] = useState(false);
   const tags = question.Tags?.split(',') || [];
 
   const handleCheckSubmission = async () => {
@@ -102,6 +104,11 @@ export default function QuestionCard({ question }: QuestionProps) {
               </button>
               <button className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
                   <StickyNote className="h-4 w-4" />
+              <button 
+                onClick={() => setIsNotesOpen(true)}
+                className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+              >
+                  <StickyNote className="h-3 w-3" />
                   Note
               </button>
           </div>
@@ -151,6 +158,12 @@ export default function QuestionCard({ question }: QuestionProps) {
         questionTitle={question.Title || 'Untitled'} 
         isOpen={isDiscussionOpen}
         onClose={() => setIsDiscussionOpen(false)}
+      />
+      <NotesModal 
+        questionId={question.QuestionID} 
+        questionTitle={question.Title || 'Untitled'} 
+        isOpen={isNotesOpen}
+        onClose={() => setIsNotesOpen(false)}
       />
     </>
   );
