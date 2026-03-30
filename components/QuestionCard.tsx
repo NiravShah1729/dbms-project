@@ -13,8 +13,10 @@ import {
   MessageCircle
 } from 'lucide-react';
 import api from '@/lib/api';
+import { useQuestionStore } from '@/app/store/useQuestionStore';
 import DiscussionModal from './shared/DiscussionModal';
 import NotesModal from './shared/NotesModal';
+import SolutionModal from './shared/SolutionModal';
 
 export interface QuestionProps {
   question: {
@@ -26,15 +28,19 @@ export interface QuestionProps {
     IsVerified?: boolean;
     HasSolution?: boolean;
     SolvedStatus?: 'AC' | 'WA' | 'TLE' | 'MLE' | 'CE' | null;
+    IsBookmarked?: boolean;
   };
 }
 
 export default function QuestionCard({ question }: QuestionProps) {
+  const { toggleBookmark } = useQuestionStore();
   const [loading, setLoading] = useState(false);
   const [verdict, setVerdict] = useState<'AC' | 'WA' | 'TLE' | 'MLE' | 'CE' | null>(question.SolvedStatus || null);
   const [error, setError] = useState<string | null>(null);
   const [isDiscussionOpen, setIsDiscussionOpen] = useState(false);
   const [isNotesOpen, setIsNotesOpen] = useState(false);
+  const [isSolutionOpen, setIsSolutionOpen] = useState(false);
+  const [solutionTab, setSolutionTab] = useState<'hints' | 'codes'>('hints');
 
   const tags = question.Tags?.split(',') || [];
 
@@ -51,7 +57,9 @@ export default function QuestionCard({ question }: QuestionProps) {
       }
     } catch (err: any) {
       console.error('Check submission error:', err);
-      setError(err.response?.data?.error || 'Failed to verify submission');
+      // Capture the specific error message from our backend (e.g., "Codeforces handle not found")
+      const errorMessage = err.response?.data?.error || err.response?.data?.details || 'Failed to verify submission';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -95,12 +103,18 @@ export default function QuestionCard({ question }: QuestionProps) {
               Discussion
             </button>
 
-            <button className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
+            <button 
+              onClick={() => { setSolutionTab('hints'); setIsSolutionOpen(true); }}
+              className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors"
+            >
               <Lightbulb className="h-4 w-4" />
               Hint
             </button>
 
-            <button className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
+            <button 
+              onClick={() => { setSolutionTab('codes'); setIsSolutionOpen(true); }}
+              className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors"
+            >
               <Code2 className="h-4 w-4" />
               Solution
             </button>
@@ -141,8 +155,15 @@ export default function QuestionCard({ question }: QuestionProps) {
               Solve on CF
             </a>
 
-            <button className="rounded-lg border bg-background p-2 text-muted-foreground hover:text-primary transition-colors">
-              <Bookmark className="h-5 w-5" />
+            <button 
+              onClick={() => toggleBookmark(question.QuestionID)}
+              className={`rounded-lg border p-2 transition-colors ${
+                question.IsBookmarked 
+                  ? 'bg-primary/10 border-primary text-primary' 
+                  : 'bg-background text-muted-foreground hover:text-primary'
+              }`}
+            >
+              <Bookmark className={`h-5 w-5 ${question.IsBookmarked ? 'fill-current' : ''}`} />
             </button>
           </div>
 
@@ -165,6 +186,13 @@ export default function QuestionCard({ question }: QuestionProps) {
         questionTitle={question.Title || 'Untitled'}
         isOpen={isNotesOpen}
         onClose={() => setIsNotesOpen(false)}
+      />
+      <SolutionModal
+        questionId={question.QuestionID}
+        questionTitle={question.Title || 'Untitled'}
+        isOpen={isSolutionOpen}
+        onClose={() => setIsSolutionOpen(false)}
+        defaultTab={solutionTab}
       />
     </>
   );

@@ -8,6 +8,7 @@ import statsRoutes from './routes/stats';
 import cfVerifyRoutes from './routes/cfVerify';
 import discussionRoutes from './routes/discussions';
 import noteRoutes from './routes/notes';
+import bookmarkRoutes from './routes/bookmarks';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use('/api/stats', statsRoutes);
 app.use('/api/cfverify', cfVerifyRoutes);
 app.use('/api/discussions', discussionRoutes);
 app.use('/api/notes', noteRoutes);
+app.use('/api/bookmarks', bookmarkRoutes);
 
 app.listen(PORT, () => {
     console.log(`[server]: Server is running at http://localhost:${PORT}`);
