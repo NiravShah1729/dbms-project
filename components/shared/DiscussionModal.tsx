@@ -29,21 +29,30 @@ interface DiscussionModalProps {
   onClose: () => void;
 }
 
-const fetcher = (url: string) => {
+const fetcher = async (url: string) => {
   const token = localStorage.getItem('token');
-  return fetch(url, {
+  const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` }
-  }).then((res) => res.json());
+  });
+  if (!res.ok) {
+    const error = new Error('An error occurred while fetching the data.');
+    (error as any).info = await res.json();
+    (error as any).status = res.status;
+    throw error;
+  }
+  return res.json();
 };
 
 export default function DiscussionModal({ questionId, questionTitle, isOpen, onClose }: DiscussionModalProps) {
   const [newComment, setNewComment] = useState('');
   const [replyToId, setReplyToId] = useState<number | null>(null);
   
-  const { data: discussions, error, mutate } = useSWR<Discussion[]>(
+  const { data: discussionsRaw, error, mutate } = useSWR<Discussion[]>(
     isOpen ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/discussions/${questionId}` : null,
     fetcher
   );
+
+  const discussions = Array.isArray(discussionsRaw) ? discussionsRaw : [];
 
   useEffect(() => {
     if (isOpen) {
@@ -116,15 +125,15 @@ export default function DiscussionModal({ questionId, questionTitle, isOpen, onC
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {error && <p className="text-red-500">Failed to load discussions.</p>}
-          {!discussions && !error && <p className="text-gray-400">Loading...</p>}
+          {!discussionsRaw && !error && <p className="text-gray-400">Loading...</p>}
           
-          {discussions?.length === 0 && (
+          {discussionsRaw && discussions.length === 0 && (
             <div className="text-center text-gray-400 mt-10">
               <p>No comments yet. Be the first to start the discussion!</p>
             </div>
           )}
 
-          {discussions?.map((disc) => (
+          {discussions.map((disc) => (
             <div key={disc.DISCUSSIONID} className="flex gap-4 border-b border-[#2a2a2a] pb-6 last:border-0">
               {/* Avatar */}
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#c24e00] font-bold text-white shadow-sm">

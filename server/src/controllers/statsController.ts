@@ -2,6 +2,23 @@ import { Response } from 'express';
 import { executePool } from '../config/db';
 import { AuthenticatedRequest } from '../middleware/auth';
 
+export const getMyStats = async (req: AuthenticatedRequest, res: Response) => {
+  const UserID = req.user?.UserID;
+  try {
+    const statsSql = `
+      SELECT us.*, u.FullName, u.CF_Handle,
+             (SELECT COUNT(*) FROM Submission WHERE UserID = :UserID) as TotalSubmissions
+      FROM UserStats us
+      JOIN "User" u ON us.UserID = u.UserID
+      WHERE us.UserID = :UserID
+    `;
+    const result = await executePool<any>(statsSql, { UserID });
+    res.json(result.rows?.[0] || { TotalSolved: 0, TotalSubmissions: 0, CurrentRank: 'N/A' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Internal Server Error', details: err.message });
+  }
+};
+
 export const getLeaderboard = async (req: AuthenticatedRequest, res: Response) => {
   const currentUserId = req.user?.UserID;
 
