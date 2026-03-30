@@ -12,6 +12,8 @@ const dbConfig = {
   connectString: process.env.ORACLE_CONNECTION_STRING,
 };
 
+console.log(`[db]: Attempting connection for user: ${dbConfig.user} to ${dbConfig.connectString}`);
+
 export async function getConnection() {
   return await oracledb.getConnection(dbConfig);
 }

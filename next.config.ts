@@ -2,7 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  reactCompiler: true,
+  experimental: {
+    reactCompiler: true,
+  },
+  images: {
+    domains: ['api.dicebear.com'],
+  },
+  outputFileTracingRoot: process.cwd(),
 };
 
 export default nextConfig;

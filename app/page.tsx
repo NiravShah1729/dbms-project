@@ -233,22 +233,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-
-      <style jsx global>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        @keyframes float-delayed {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-15px); }
-        }
-        .animate-float { animation: float 6s ease-in-out infinite; }
-        .animate-float-delayed { animation: float-delayed 8s ease-in-out infinite; }
-        .perspective-1000 { perspective: 1000px; }
-        .rotate-y-2 { transform: rotateY(2deg); }
-        .rotate-x-2 { transform: rotateX(2deg); }
-      `}</style>
     </div>
   );
 }

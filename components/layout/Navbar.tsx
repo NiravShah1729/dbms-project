@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ListTodo, Trophy, User, LogOut } from 'lucide-react';
+import { useAuthStore } from '@/app/store/useAuthStore';
+import { LayoutDashboard, ListTodo, Trophy, User, LogOut, ShieldAlert } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { user, logout: storeLogout } = useAuthStore();
 
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
@@ -14,11 +16,16 @@ export default function Navbar() {
     { label: 'Profile', icon: User, href: '/profile' },
   ];
 
+  // Add Admin item if user has admin role
+  if (user?.Roles.includes('admin')) {
+    navItems.push({ label: 'Admin Panel', icon: ShieldAlert, href: '/admin' });
+  }
+
   return (
     <nav className="fixed left-0 top-0 h-full w-64 border-r bg-background p-6">
-      <div className="mb-8 flex items-center gap-2 font-bold text-xl text-primary">
-        <Trophy className="h-6 w-6" />
-        <span>CP Tracker</span>
+      <div className="mb-8 flex items-center gap-2 font-black text-2xl text-indigo-600 tracking-tighter">
+        <ShieldAlert className="h-6 w-6" />
+        <span>DevProgress</span>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -37,7 +44,7 @@ export default function Navbar() {
 
         <button
           onClick={() => {
-            localStorage.removeItem('token');
+            storeLogout();
             window.location.href = '/login';
           }}
           className="mt-4 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"

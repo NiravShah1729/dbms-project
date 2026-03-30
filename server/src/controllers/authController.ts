@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import oracledb from 'oracledb';
 import { executePool } from '../config/db';
 import { RoleName } from '../types';
 
@@ -15,28 +16,31 @@ export const register = async (req: Request, res: Response) => {
     const passwordHash = await bcrypt.hash(Password, 10);
     
     // 1. Insert user
-    const userResult = await executePool<any>(
+    await executePool(
       `INSERT INTO "User" (FullName, Email, PasswordHash, CF_Handle) 
-       VALUES (:FullName, :Email, :PasswordHash, :CF_Handle) 
-       RETURNING UserID INTO :id`,
-      { FullName, Email, passwordHash, CF_Handle, id: { type: 2002 /* Number */, dir: 3003 /* Out */ } }
+       VALUES (:FullName, :Email, :PasswordHash, :CF_Handle)`,
+      { FullName, Email, PasswordHash: passwordHash, CF_Handle }
     );
     
-    // In node-oracledb, RETURNING INTO works slightly differently, 
-    // but the above is a simplification. Let's use a normal INSERT and then fetch the ID if needed, 
-    // or use the 'outBind' from executePool correctly.
-    // For simplicity with strictly normalized schema, we fetch the default 'user' role.
+    // 2. Fetch the new UserID and the 'user' role ID
+    const roleResult = await executePool<any>(
+      `SELECT RoleID FROM Role WHERE RoleName = :roleName`, 
+      { roleName: 'user' }
+    );
     
-    const findRoleSql = `SELECT RoleID FROM Role WHERE RoleName = :roleName`;
-    const roleResult = await executePool<any>(findRoleSql, { roleName: RoleName.USER });
-    const userRoleId = (roleResult.rows as any)[0].ROLEID;
-    
-    // Need the New User ID
-    const fetchUserIdSql = `SELECT UserID FROM "User" WHERE Email = :email`;
-    const userIdResult = await executePool<any>(fetchUserIdSql, { email: Email });
-    const newUserId = (userIdResult.rows as any)[0].USERID;
+    const userResult = await executePool<any>(
+      `SELECT UserID FROM "User" WHERE Email = :Email`, 
+      { Email }
+    );
 
-    // 2. Assign default role
+    if (!roleResult.rows || roleResult.rows.length === 0) {
+      throw new Error("Default 'user' role not found in database.");
+    }
+    
+    const userRoleId = (roleResult.rows as any)[0].ROLEID;
+    const newUserId = (userResult.rows as any)[0].USERID;
+
+    // 3. Assign default role
     await executePool(
       `INSERT INTO UserRole (UserID, RoleID) VALUES (:UserID, :RoleID)`,
       { UserID: newUserId, RoleID: userRoleId }

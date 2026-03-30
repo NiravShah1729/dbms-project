@@ -1,0 +1,26 @@
+version: '1.0'
+services:
+  oracle:
+    image: gvenzl/oracle-xe:21
+    container_name: oracle_db_project
+    ports:
+      - "1521:1521"
+      - "5500:5500"
+    environment:
+      - ORACLE_PASSWORD=password
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+      - ./data:/home/oracle/csv_data  # Mount for the DB
+
+  sqlcl:
+    image: sql:working
+    depends_on:
+      - oracle
+    entrypoint: ["bash"]
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./data:/home/oracle/csv_data  # <--- ADD THIS LINE HERE TOO
+
+volumes:
+  oracle_data:
